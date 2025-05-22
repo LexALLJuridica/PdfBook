@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDFbooK - Búsqueda Experta de Libros</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #002f6c;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+      text-align: center;
+    }
+    input[type="file"] {
+      margin: 10px auto;
+    }
+    .gcse-search {
+      margin-top: 20px;
+    }
+    footer {
+      background-color: #002f6c;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+  </style>
+  <script async src="https://cse.google.com/cse.js?cx=835fe28288aab4d17"></script>
+</head>
+<body>
+  <header>
+    <h1>PDFbooK</h1>
+    <p>Búsqueda experta de libros en PDF</p>
+  </header>
+  <main>
+    <div class="gcse-search"></div>
+    <p><strong>O sube un archivo .CSV para búsqueda semántica:</strong></p>
+    <input type="file" id="csvInput" accept=".csv">
+    <div id="csvResults"></div>
+  </main>
+  <footer>
+    APP creada por Juan Manuel Padilla Garcia, Colombia
+  </footer>
+  <script>
+    const BACKEND_URL = 'https://pdfbook.onrender.com/api/gpt-search';
+
+    async function obtenerConsultaDesdeServidor(prompt) {
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt })
+        });
+        const data = await response.json();
+        return data.result || prompt;
+      } catch (error) {
+        console.error('Error consultando el servidor GPT:', error);
+        return prompt;
+      }
+    }
+
+    async function procesarCSVConServidorGPT(csvText) {
+      const lineas = csvText.split(/?
+/).filter(l => l.trim() !== '');
+      const resultados = [];
+      for (let linea of lineas) {
+        const consulta = await obtenerConsultaDesdeServidor(`Genera una búsqueda precisa en Google de libros académicos en PDF sobre: ${linea}`);
+        const enlace = `https://www.google.com/search?q=${encodeURIComponent(consulta + ' filetype:pdf')}`;
+        resultados.push({ linea: consulta, enlace });
+      }
+      mostrarResultadosCSV(resultados);
+    }
+
+    function mostrarResultadosCSV(resultados) {
+      const div = document.getElementById('csvResults');
+      if (!div) return;
+      div.innerHTML = '<h3>Resultados semánticos:</h3><ul>' +
+        resultados.map(r => `<li><a href="${r.enlace}" target="_blank">${r.linea}</a></li>`).join('') +
+        '</ul>';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('csvInput');
+      if (!input) return;
+      input.addEventListener('change', async function () {
+        const archivo = this.files[0];
+        if (!archivo) return;
+        const lector = new FileReader();
+        lector.onload = async function (e) {
+          const contenido = e.target.result;
+          await procesarCSVConServidorGPT(contenido);
+        };
+        lector.readAsText(archivo);
+      });
+    });
+  </script>
+</body>
+</html>

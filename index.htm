@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>PDFbooK API - Búsqueda Experta en PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f4; color: #111; }
+    h1 { color: #002f6c; }
+    input[type="text"] { width: 60%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+    input[type="file"] { margin-top: 10px; }
+    button { padding: 10px 20px; font-size: 16px; background: #004a9f; color: white; border: none; margin-top: 10px; }
+    #resultadosPDF { margin-top: 20px; }
+    footer { margin-top: 40px; font-size: 14px; color: gray; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>PDFbooK</h1>
+  <p>Búsqueda avanzada de libros en PDF descargables</p>
+
+  <section>
+    <h3>Búsqueda individual por texto</h3>
+    <form id="formBusquedaPDF">
+      <input type="text" id="entradaPDF" placeholder="Ej. derecho laboral colombiano">
+      <button type="submit">Buscar PDF</button>
+    </form>
+  </section>
+
+  <section>
+    <h3>Búsqueda masiva desde archivo CSV</h3>
+    <input type="file" id="csvInput" accept=".csv,.txt">
+  </section>
+
+  <div id="resultadosPDF"></div>
+  <footer>APP creada por Juan Manuel Padilla García, Colombia</footer>
+
+  <script src="busqueda_pdf_google.js"></script>
+  <script>
+    document.getElementById('formBusquedaPDF').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const entrada = document.getElementById('entradaPDF').value.trim();
+      const resultados = document.getElementById('resultadosPDF');
+      if (!entrada) return;
+      resultados.innerHTML = '<p>Buscando PDF...</p>';
+      const pdfs = await buscarPDF(entrada);
+      if (pdfs.length === 0) {
+        resultados.innerHTML = '<p>No se encontraron PDFs.</p>';
+      } else {
+        resultados.innerHTML = '<ul>' + pdfs.map(p => `<li><a href="${p.enlace}" target="_blank">${p.titulo}</a></li>`).join('') + '</ul>';
+      }
+    });
+
+    document.getElementById('csvInput').addEventListener('change', async function () {
+      const archivo = this.files[0];
+      if (!archivo) return;
+      const lector = new FileReader();
+      lector.onload = async function (e) {
+        const lineas = e.target.result.split(/\r?\n/).filter(l => l.trim() !== '');
+        const resultados = document.getElementById('resultadosPDF');
+        resultados.innerHTML = '<p>Procesando archivo...</p>';
+        let acumulado = '';
+        for (let linea of lineas) {
+          const pdfs = await buscarPDF(linea);
+          if (pdfs.length > 0) {
+            acumulado += `<h4>${linea}</h4><ul>` +
+              pdfs.map(p => `<li><a href="${p.enlace}" target="_blank">${p.titulo}</a></li>`).join('') + '</ul>';
+          } else {
+            acumulado += `<h4>${linea}</h4><p>No se encontraron PDFs.</p>`;
+          }
+        }
+        resultados.innerHTML = acumulado;
+      };
+      lector.readAsText(archivo);
+    });
+  </script>
+</body>
+</html>

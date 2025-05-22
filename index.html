@@ -8,6 +8,7 @@
     body { font-family: sans-serif; padding: 20px; background: #f4f4f4; color: #111; }
     h1 { color: #002f6c; }
     input[type="text"] { width: 60%; padding: 10px; font-size: 16px; }
+    input[type="file"] { margin-top: 20px; }
     button { padding: 10px 20px; font-size: 16px; background: #004a9f; color: white; border: none; }
     #resultadosPDF { margin-top: 20px; }
     footer { margin-top: 40px; font-size: 14px; color: gray; text-align: center; }
@@ -20,8 +21,39 @@
     <input type="text" id="entradaPDF" placeholder="Ej. derecho laboral colombiano">
     <button type="submit">Buscar PDF</button>
   </form>
+
+  <p><strong>O carga un archivo CSV con temas:</strong></p>
+  <input type="file" id="csvInput" accept=".csv">
+
   <div id="resultadosPDF"></div>
   <footer>APP creada por Juan Manuel Padilla García, Colombia</footer>
+
   <script src="busqueda_pdf_google.js"></script>
+  <script>
+    document.getElementById('csvInput').addEventListener('change', async function () {
+      const archivo = this.files[0];
+      if (!archivo) return;
+      const lector = new FileReader();
+
+      lector.onload = async function (e) {
+        const lineas = e.target.result.split(/\r?\n/).filter(l => l.trim() !== '');
+        const resultados = document.getElementById('resultadosPDF');
+        resultados.innerHTML = '<p>Procesando archivo CSV...</p>';
+
+        let acumulado = '';
+        for (let linea of lineas) {
+          const pdfs = await buscarPDF(linea);
+          if (pdfs.length > 0) {
+            acumulado += `<h4>${linea}</h4><ul>` +
+              pdfs.map(p => `<li><a href="${p.enlace}" target="_blank">${p.titulo}</a></li>`).join('') + '</ul>';
+          } else {
+            acumulado += `<h4>${linea}</h4><p>No se encontraron PDFs.</p>`;
+          }
+        }
+        resultados.innerHTML = acumulado;
+      };
+      lector.readAsText(archivo);
+    });
+  </script>
 </body>
 </html>

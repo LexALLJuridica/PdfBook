@@ -22,8 +22,8 @@
     <button type="submit">Buscar PDF</button>
   </form>
 
-  <p><strong>O carga un archivo CSV con temas:</strong></p>
-  <input type="file" id="csvInput" accept=".csv">
+  <p><strong>O carga un archivo CSV o TXT con temas:</strong></p>
+  <input type="file" id="csvInput" accept=".csv,.txt">
 
   <div id="resultadosPDF"></div>
   <footer>APP creada por Juan Manuel Padilla García, Colombia</footer>
@@ -38,7 +38,7 @@
       lector.onload = async function (e) {
         const lineas = e.target.result.split(/\r?\n/).filter(l => l.trim() !== '');
         const resultados = document.getElementById('resultadosPDF');
-        resultados.innerHTML = '<p>Procesando archivo CSV...</p>';
+        resultados.innerHTML = '<p>Procesando archivo...</p>';
 
         let acumulado = '';
         for (let linea of lineas) {

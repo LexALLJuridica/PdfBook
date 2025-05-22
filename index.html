@@ -75,7 +75,8 @@
     }
 
     async function procesarCSVConServidorGPT(csvText) {
-      const lineas = csvText.split(/?
+      const lineas = csvText.split(/
+?
 /).filter(l => l.trim() !== '');
       const resultados = [];
       for (let linea of lineas) {

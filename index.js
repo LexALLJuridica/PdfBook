@@ -4,6 +4,11 @@ const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
+app.use(cors({
+  origin: 'https://lexalljuridica.github.io',
+  methods: ['POST'],
+  allowedHeaders: ['Content-Type']
+}));
 app.use(cors());
 app.use(express.json());
 
